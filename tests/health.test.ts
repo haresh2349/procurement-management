@@ -13,6 +13,7 @@ describe('Health API', () => {
       success: true,
       data: {
         status: 'ok',
+        database: 'disconnected',
       },
       message: 'Service is healthy',
     });

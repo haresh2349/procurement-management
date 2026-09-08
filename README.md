@@ -32,9 +32,10 @@ cp .env
 
 | Variable    | Default       | Description                                          |
 | ----------- | ------------- | ---------------------------------------------------- |
-| `NODE_ENV`  | `development` | Runtime environment                                  |
-| `PORT`      | `3000`        | HTTP server port                                     |
-| `LOG_LEVEL` | `info`        | Minimum log level (`debug`, `info`, `warn`, `error`) |
+| `NODE_ENV`    | `development` | Runtime environment                                  |
+| `PORT`        | `3000`        | HTTP server port                                     |
+| `LOG_LEVEL`   | `info`        | Minimum log level (`debug`, `info`, `warn`, `error`) |
+| `MONGODB_URI` | —             | MongoDB connection string (required)                 |
 
 
 

@@ -3,6 +3,7 @@ import { Router } from 'express';
 import { HttpStatus } from '../common/constants/http-status.js';
 import { successResponse } from '../common/types/api-response.js';
 import { asyncHandler } from '../common/utils/async-handler.js';
+import { getDatabaseStatus } from '../config/database.js';
 
 export const healthRouter = Router();
 
@@ -14,6 +15,7 @@ healthRouter.get(
         {
           status: 'ok',
           timestamp: new Date().toISOString(),
+          database: getDatabaseStatus(),
         },
         'Service is healthy',
       ),
