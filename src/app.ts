@@ -5,6 +5,8 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 
 import { errorHandler, notFoundHandler } from './middlewares/error-handler.middleware.js';
+import { authRouter } from './modules/auth/auth.route.js';
+import { userRouter } from './modules/users/user.route.js';
 import { healthRouter } from './routes/health.route.js';
 
 export const createApp = (): Express => {
@@ -21,6 +23,8 @@ export const createApp = (): Express => {
   }
 
   app.use('/api/v1/health', healthRouter);
+  app.use('/api/v1/auth', authRouter);
+  app.use('/api/v1/users', userRouter);
 
   app.use(notFoundHandler);
   app.use(errorHandler);

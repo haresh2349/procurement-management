@@ -35,7 +35,11 @@ cp .env
 | `NODE_ENV`    | `development` | Runtime environment                                  |
 | `PORT`        | `3000`        | HTTP server port                                     |
 | `LOG_LEVEL`   | `info`        | Minimum log level (`debug`, `info`, `warn`, `error`) |
-| `MONGODB_URI` | —             | MongoDB connection string (required)                 |
+| `MONGODB_URI`     | —             | MongoDB connection string (required)                 |
+| `JWT_SECRET`      | —             | Secret for signing JWT access tokens (required)    |
+| `JWT_EXPIRES_IN`  | `7d`          | JWT expiry duration                                |
+| `ADMIN_EMAIL`     | —             | Seed script: first admin email                       |
+| `ADMIN_PASSWORD`  | —             | Seed script: first admin password                    |
 
 
 
@@ -43,6 +47,16 @@ cp .env
 ## API
 
 - `GET /api/v1/health` — Health check
+- `POST /api/v1/auth/login` — Login with email or mobile + password
+- `POST /api/v1/users` — Admin creates Procurement Manager, Inspection Manager, or Client
+
+### Bootstrap admin
+
+```bash
+npm run seed:admin
+```
+
+Requires `ADMIN_EMAIL` and `ADMIN_PASSWORD` in `.env`.
 
 
 
