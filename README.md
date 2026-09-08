@@ -49,6 +49,7 @@ cp .env
 - `GET /api/v1/health` — Health check
 - `POST /api/v1/auth/login` — Login with email or mobile + password
 - `POST /api/v1/users` — Admin creates Procurement Manager, Inspection Manager, or Client
+- `POST /api/v1/users` — Procurement Manager creates Inspection Manager or Client (Inspection Manager is auto-assigned to the caller)
 
 ### Bootstrap admin
 

@@ -1,6 +1,10 @@
 import mongoose from 'mongoose';
 
-import { ADMIN_CREATABLE_ROLES, UserRole } from '../../common/constants/roles.js';
+import {
+  ADMIN_CREATABLE_ROLES,
+  PROCUREMENT_MANAGER_CREATABLE_ROLES,
+  UserRole,
+} from '../../common/constants/roles.js';
 import { AppError } from '../../common/errors/app-error.js';
 import { ErrorCode } from '../../common/errors/error-codes.js';
 import { HttpStatus } from '../../common/constants/http-status.js';
@@ -41,6 +45,45 @@ const validateManagerAssignment = async (managerId?: string): Promise<void> => {
   }
 };
 
+const assertUniqueContactDetails = async (email?: string, mobile?: string): Promise<void> => {
+  if (email) {
+    const existingEmail = await userRepository.findByEmail(email);
+
+    if (existingEmail) {
+      throw new AppError('Email already in use', HttpStatus.CONFLICT, ErrorCode.CONFLICT);
+    }
+  }
+
+  if (mobile) {
+    const existingMobile = await userRepository.findByMobile(mobile);
+
+    if (existingMobile) {
+      throw new AppError('Mobile already in use', HttpStatus.CONFLICT, ErrorCode.CONFLICT);
+    }
+  }
+};
+
+const saveUser = async (createdBy: string, input: CreateUserInput): Promise<UserResponse> => {
+  await assertUniqueContactDetails(input.email, input.mobile);
+
+  try {
+    const passwordHash = await hashPassword(input.password);
+    const user = await userRepository.createUser({
+      ...input,
+      passwordHash,
+      createdBy,
+    });
+
+    return userRepository.toUserResponse(user);
+  } catch (error) {
+    if (isDuplicateKeyError(error)) {
+      throw new AppError('User already exists', HttpStatus.CONFLICT, ErrorCode.CONFLICT);
+    }
+
+    throw error;
+  }
+};
+
 export const createUserByAdmin = async (
   adminId: string,
   input: CreateUserInput,
@@ -63,36 +106,33 @@ export const createUserByAdmin = async (
 
   await validateManagerAssignment(input.managerId);
 
-  if (input.email) {
-    const existingEmail = await userRepository.findByEmail(input.email);
+  return saveUser(adminId, input);
+};
 
-    if (existingEmail) {
-      throw new AppError('Email already in use', HttpStatus.CONFLICT, ErrorCode.CONFLICT);
-    }
+export const createUserByProcurementManager = async (
+  procurementManagerId: string,
+  input: CreateUserInput,
+): Promise<UserResponse> => {
+  if (!PROCUREMENT_MANAGER_CREATABLE_ROLES.includes(input.role)) {
+    throw new AppError(
+      'Procurement Manager cannot create users with this role',
+      HttpStatus.FORBIDDEN,
+      ErrorCode.FORBIDDEN,
+    );
   }
 
-  if (input.mobile) {
-    const existingMobile = await userRepository.findByMobile(input.mobile);
-
-    if (existingMobile) {
-      throw new AppError('Mobile already in use', HttpStatus.CONFLICT, ErrorCode.CONFLICT);
-    }
+  if (input.managerId) {
+    throw new AppError(
+      'managerId cannot be set when creating users as a Procurement Manager',
+      HttpStatus.BAD_REQUEST,
+      ErrorCode.BAD_REQUEST,
+    );
   }
 
-  try {
-    const passwordHash = await hashPassword(input.password);
-    const user = await userRepository.createUser({
-      ...input,
-      passwordHash,
-      createdBy: adminId,
-    });
+  const userInput: CreateUserInput = {
+    ...input,
+    managerId: input.role === UserRole.INSPECTION_MANAGER ? procurementManagerId : undefined,
+  };
 
-    return userRepository.toUserResponse(user);
-  } catch (error) {
-    if (isDuplicateKeyError(error)) {
-      throw new AppError('User already exists', HttpStatus.CONFLICT, ErrorCode.CONFLICT);
-    }
-
-    throw error;
-  }
+  return saveUser(procurementManagerId, userInput);
 };

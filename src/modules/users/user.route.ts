@@ -3,16 +3,15 @@ import { Router } from 'express';
 import { UserRole } from '../../common/constants/roles.js';
 import { authenticate } from '../../middlewares/authenticate.middleware.js';
 import { authorize } from '../../middlewares/authorize.middleware.js';
-import { validate } from '../../middlewares/validate.middleware.js';
 import * as userController from './user.controller.js';
-import { createUserSchema } from './user.validation.js';
+import { validateCreateUserRequest } from './user.middleware.js';
 
 export const userRouter = Router();
 
 userRouter.post(
   '/',
   authenticate,
-  authorize(UserRole.ADMIN),
-  validate(createUserSchema),
+  authorize(UserRole.ADMIN, UserRole.PROCUREMENT_MANAGER),
+  validateCreateUserRequest,
   userController.createUser,
 );

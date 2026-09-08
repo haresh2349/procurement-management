@@ -12,3 +12,8 @@ export const ADMIN_CREATABLE_ROLES: UserRoleType[] = [
   UserRole.INSPECTION_MANAGER,
   UserRole.CLIENT,
 ];
+
+export const PROCUREMENT_MANAGER_CREATABLE_ROLES: UserRoleType[] = [
+  UserRole.INSPECTION_MANAGER,
+  UserRole.CLIENT,
+];

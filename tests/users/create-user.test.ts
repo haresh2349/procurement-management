@@ -130,16 +130,16 @@ describe('POST /api/v1/users', () => {
       expect(response.body.code).toBe('UNAUTHORIZED');
     });
 
-    it('returns 403 when a procurement manager attempts to create a user', async () => {
+    it('returns 403 when an inspection manager attempts to create a user', async () => {
       await createUserInDb({
-        name: 'Procurement Manager',
-        email: 'pm@test.com',
+        name: 'Inspection Manager',
+        mobile: '9876543210',
         password: 'Password1!',
-        role: UserRole.PROCUREMENT_MANAGER,
+        role: UserRole.INSPECTION_MANAGER,
       });
 
       const token = await loginAndGetToken({
-        email: 'pm@test.com',
+        mobile: '9876543210',
         password: 'Password1!',
       });
 
