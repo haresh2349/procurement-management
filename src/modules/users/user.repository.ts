@@ -18,6 +18,44 @@ export const findById = async (id: string): Promise<UserDocument | null> => {
   return User.findById(id);
 };
 
+export const findUsers = async (filter: Record<string, unknown>): Promise<UserDocument[]> => {
+  return User.find(filter).sort({ createdAt: -1 });
+};
+
+export const findUsersPaginated = async (
+  filter: Record<string, unknown>,
+  page: number,
+  limit: number,
+): Promise<{ users: UserDocument[]; total: number }> => {
+  const skip = (page - 1) * limit;
+
+  const [users, total] = await Promise.all([
+    User.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit),
+    User.countDocuments(filter),
+  ]);
+
+  return { users, total };
+};
+
+export const updateInspectionManagerManagerId = async (
+  inspectionManagerId: string,
+  managerId: string | null,
+): Promise<UserDocument | null> => {
+  if (managerId === null) {
+    return User.findByIdAndUpdate(
+      inspectionManagerId,
+      { $unset: { managerId: '' } },
+      { returnDocument: 'after', runValidators: true },
+    );
+  }
+
+  return User.findByIdAndUpdate(
+    inspectionManagerId,
+    { managerId },
+    { returnDocument: 'after', runValidators: true },
+  );
+};
+
 export const findByEmail = async (email: string): Promise<UserDocument | null> => {
   return User.findOne({ email: email.toLowerCase() });
 };

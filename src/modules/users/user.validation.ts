@@ -2,7 +2,29 @@ import { z } from 'zod';
 
 import { UserRole } from '../../common/constants/roles.js';
 
-const objectIdSchema = z.string().regex(/^[a-f\d]{24}$/i, 'Invalid managerId');
+const objectIdSchema = z.string().regex(/^[a-f\d]{24}$/i, 'Invalid id');
+
+export const userIdParamSchema = z.object({
+  id: objectIdSchema,
+});
+
+export const inspectionManagerIdParamSchema = z.object({
+  inspectionManagerId: objectIdSchema,
+});
+
+export const assignInspectionManagerSchema = z.object({
+  managerId: objectIdSchema,
+});
+
+export const listUsersQuerySchema = z.object({
+  role: z
+    .enum([UserRole.PROCUREMENT_MANAGER, UserRole.INSPECTION_MANAGER, UserRole.CLIENT])
+    .optional(),
+  page: z.coerce.number().int().positive().default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+});
+
+export type ListUsersQueryInput = z.infer<typeof listUsersQuerySchema>;
 
 const baseCreateUserFields = {
   name: z.string().trim().min(1, 'Name is required').max(100),
@@ -56,6 +78,8 @@ export type CreateUserByAdminBody = z.infer<typeof createUserByAdminSchema>;
 export type CreateUserByProcurementManagerBody = z.infer<
   typeof createUserByProcurementManagerSchema
 >;
+
+export type AssignInspectionManagerBody = z.infer<typeof assignInspectionManagerSchema>;
 
 // Backward-compatible alias used by existing tests/imports
 export const createUserSchema = createUserByAdminSchema;

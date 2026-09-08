@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import request from 'supertest';
-import { afterAll, afterEach, beforeAll, describe, expect, it } from '@jest/globals';
+import { afterAll, afterEach, beforeAll, describe, expect, it, jest } from '@jest/globals';
 
 import { createApp } from '../../src/app.js';
 import { UserRole, type UserRoleType } from '../../src/common/constants/roles.js';
@@ -9,6 +9,8 @@ import { hashPassword } from '../../src/common/utils/password.js';
 import { User } from '../../src/modules/users/user.model.js';
 
 describe('POST /api/v1/users (Procurement Manager)', () => {
+  jest.setTimeout(30000);
+
   let mongoServer: MongoMemoryServer;
   const app = createApp();
 

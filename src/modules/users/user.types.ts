@@ -25,3 +25,21 @@ export interface CreateUserPersistenceInput extends CreateUserInput {
   createdBy: string;
   passwordHash: string;
 }
+
+export interface ListUsersQuery {
+  role?: UserRoleType;
+  page: number;
+  limit: number;
+}
+
+export interface PaginationMeta {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
+export interface PaginatedUsersResponse {
+  items: UserResponse[];
+  pagination: PaginationMeta;
+}

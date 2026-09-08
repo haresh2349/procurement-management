@@ -9,7 +9,7 @@ type RequestSource = 'body' | 'query' | 'params';
 
 export const validate =
   (schema: ZodType, source: RequestSource = 'body') =>
-  (req: Request, _res: Response, next: NextFunction): void => {
+  (req: Request, res: Response, next: NextFunction): void => {
     const result = schema.safeParse(req[source]);
 
     if (!result.success) {
@@ -24,6 +24,18 @@ export const validate =
       return;
     }
 
-    req[source] = result.data;
+    if (source === 'body') {
+      req.body = result.data;
+      next();
+      return;
+    }
+
+    if (source === 'query') {
+      res.locals.validatedQuery = result.data;
+      next();
+      return;
+    }
+
+    res.locals.validatedParams = result.data;
     next();
   };

@@ -50,6 +50,10 @@ cp .env
 - `POST /api/v1/auth/login` — Login with email or mobile + password
 - `POST /api/v1/users` — Admin creates Procurement Manager, Inspection Manager, or Client
 - `POST /api/v1/users` — Procurement Manager creates Inspection Manager or Client (Inspection Manager is auto-assigned to the caller)
+- `GET /api/v1/users` — Admin lists all PMs/IMs/Clients; Procurement Manager lists only owned clients and assigned IMs. Supports `?role=CLIENT|INSPECTION_MANAGER|PROCUREMENT_MANAGER&page=1&limit=20`
+- `GET /api/v1/users/:id` — Get user by id with ownership filtering
+- `PATCH /api/v1/users/:inspectionManagerId/assign` — Admin assigns Inspection Manager to Procurement Manager
+- `PATCH /api/v1/users/:inspectionManagerId/unassign` — Admin unassigns Inspection Manager
 
 ### Bootstrap admin
 

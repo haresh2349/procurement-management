@@ -5,12 +5,20 @@ import {
   PROCUREMENT_MANAGER_CREATABLE_ROLES,
   UserRole,
 } from '../../common/constants/roles.js';
+import type { AuthUser } from '../../common/types/express.js';
 import { AppError } from '../../common/errors/app-error.js';
 import { ErrorCode } from '../../common/errors/error-codes.js';
 import { HttpStatus } from '../../common/constants/http-status.js';
 import { hashPassword } from '../../common/utils/password.js';
+import { buildListUsersFilter, canViewUser } from './user.access.js';
+import type { UserDocument } from './user.model.js';
 import * as userRepository from './user.repository.js';
-import type { CreateUserInput, UserResponse } from './user.types.js';
+import type {
+  CreateUserInput,
+  ListUsersQuery,
+  PaginatedUsersResponse,
+  UserResponse,
+} from './user.types.js';
 
 const isDuplicateKeyError = (error: unknown): boolean => {
   return (
@@ -135,4 +143,101 @@ export const createUserByProcurementManager = async (
   };
 
   return saveUser(procurementManagerId, userInput);
+};
+
+const findUserDocumentById = async (userId: string): Promise<UserDocument> => {
+  if (!mongoose.Types.ObjectId.isValid(userId)) {
+    throw new AppError('User not found', HttpStatus.NOT_FOUND, ErrorCode.NOT_FOUND);
+  }
+
+  const user = await userRepository.findById(userId);
+
+  if (!user) {
+    throw new AppError('User not found', HttpStatus.NOT_FOUND, ErrorCode.NOT_FOUND);
+  }
+
+  return user;
+};
+
+const findInspectionManagerById = async (inspectionManagerId: string): Promise<UserDocument> => {
+  const user = await findUserDocumentById(inspectionManagerId);
+
+  if (user.role !== UserRole.INSPECTION_MANAGER) {
+    throw new AppError(
+      'Only Inspection Manager users can be assigned or unassigned',
+      HttpStatus.BAD_REQUEST,
+      ErrorCode.BAD_REQUEST,
+    );
+  }
+
+  return user;
+};
+
+export const listUsers = async (
+  actor: AuthUser,
+  query: ListUsersQuery,
+): Promise<PaginatedUsersResponse> => {
+  const filter = buildListUsersFilter(actor, query);
+
+  if (!filter) {
+    throw new AppError('Insufficient permissions', HttpStatus.FORBIDDEN, ErrorCode.FORBIDDEN);
+  }
+
+  const { users, total } = await userRepository.findUsersPaginated(filter, query.page, query.limit);
+
+  return {
+    items: users.map(userRepository.toUserResponse),
+    pagination: {
+      page: query.page,
+      limit: query.limit,
+      total,
+      totalPages: total === 0 ? 0 : Math.ceil(total / query.limit),
+    },
+  };
+};
+
+export const getUserById = async (actor: AuthUser, userId: string): Promise<UserResponse> => {
+  const user = await findUserDocumentById(userId);
+
+  if (!canViewUser(actor, user)) {
+    throw new AppError('User not found', HttpStatus.NOT_FOUND, ErrorCode.NOT_FOUND);
+  }
+
+  return userRepository.toUserResponse(user);
+};
+
+export const assignInspectionManager = async (
+  inspectionManagerId: string,
+  managerId: string,
+): Promise<UserResponse> => {
+  await findInspectionManagerById(inspectionManagerId);
+  await validateManagerAssignment(managerId);
+
+  const updatedUser = await userRepository.updateInspectionManagerManagerId(
+    inspectionManagerId,
+    managerId,
+  );
+
+  if (!updatedUser) {
+    throw new AppError('User not found', HttpStatus.NOT_FOUND, ErrorCode.NOT_FOUND);
+  }
+
+  return userRepository.toUserResponse(updatedUser);
+};
+
+export const unassignInspectionManager = async (
+  inspectionManagerId: string,
+): Promise<UserResponse> => {
+  await findInspectionManagerById(inspectionManagerId);
+
+  const updatedUser = await userRepository.updateInspectionManagerManagerId(
+    inspectionManagerId,
+    null,
+  );
+
+  if (!updatedUser) {
+    throw new AppError('User not found', HttpStatus.NOT_FOUND, ErrorCode.NOT_FOUND);
+  }
+
+  return userRepository.toUserResponse(updatedUser);
 };

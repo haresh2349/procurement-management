@@ -12,4 +12,9 @@ declare module 'express-serve-static-core' {
   interface Request {
     user?: AuthUser;
   }
+
+  interface Locals {
+    validatedQuery?: unknown;
+    validatedParams?: unknown;
+  }
 }
