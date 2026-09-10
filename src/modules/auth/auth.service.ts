@@ -18,7 +18,7 @@ export const login = async (input: LoginBody): Promise<LoginResult> => {
     : await userRepository.findByMobileWithPassword(input.mobile!);
 
   if (!user) {
-    throw new AppError('Invalid credentials', HttpStatus.UNAUTHORIZED, ErrorCode.UNAUTHORIZED);
+    throw new AppError('User not found', HttpStatus.NOT_FOUND, ErrorCode.NOT_FOUND);
   }
 
   if (!user.isActive) {

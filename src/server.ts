@@ -2,12 +2,14 @@ import 'dotenv/config';
 
 import { createApp } from './app.js';
 import { connectDatabase, disconnectDatabase } from './config/database.js';
+import { ensureUploadRootExists } from './modules/files/file.storage.js';
 import { logger } from './common/utils/logger.js';
 
 const port = Number(process.env.PORT) || 3000;
 
 const startServer = async (): Promise<void> => {
   await connectDatabase();
+  await ensureUploadRootExists();
 
   const app = createApp();
 
